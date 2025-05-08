@@ -21,8 +21,22 @@ class Extract:
             "User-Agent": self.config.extract_vars.USER_AGENT,
             "Referer": self.config.extract_vars.REFERRER,
             "Origin": self.config.extract_vars.ORIGIN,
+            "Accept": self.config.extract_vars.ACCEPT,
+            "Accept-Encoding": self.config.extract_vars.ACCEPT_ENCODING,
+            "Accept-Language": self.config.extract_vars.ACCEPT_LANGUAGE,
+            "Connection": self.config.extract_vars.CONNECTION,
+            "Content-Length": self.config.extract_vars.CONTENT_LENGTH,
+            "Cookie": self.config.extract_vars.COOKIE,
+            "Host": self.config.extract_vars.HOST,
+            "Sec-CH-UA": self.config.extract_vars.SEC_CH_UA,
+            "Sec-CH-UA-Mobile": self.config.extract_vars.SEC_CH_UA_MOBILE,
+            "Sec-CH-UA-Platform": self.config.extract_vars.SEC_CH_UA_PLATFORM,
+            "Sec-Fetch-Dest": self.config.extract_vars.SEC_FETCH_DEST,
+            "Sec-Fetch-Mode": self.config.extract_vars.SEC_FETCH_MODE,
+            "Sec-Fetch-Site": self.config.extract_vars.SEC_FETCH_SITE,
+            "X-Requested-With": self.config.extract_vars.X_REQUESTED_WITH
         }
-        self.pages = lines / 10
+        self.pages = lines // 10
         self.quantity = quantity
         self.all_reports = []
         self.data = {
@@ -38,30 +52,45 @@ class Extract:
 
     def fetch_reports(self):
         """Makes the request to fetch the reports and parses the HTML."""
-        for page in range(1, int(self.pages + 1)):
+        total_reports = 0
+        indicePrimeiroResultado = 0
+        
+        for page in range(1, self.pages + 1):
             payload = {
-                "page": page,
-                "quantity": self.quantity,
-                "filters": {},
-                "orders": [
-                    {
-                        "property": "registryDate",
-                        "direction": "DESC"
-                    }
-                ]
+                "indicePrimeiroResultado": indicePrimeiroResultado,
+                "palavrasChave": "",
+                "segmentoMercado": "",
+                "fornecedor": "",
+                "regiao": "",
+                "area": "",
+                "assunto": "",
+                "problema": "",
+                "dataInicio": "",
+                "dataTermino": "",
+                "avaliacao": "",
+                "nota": ""
             }
-            response = requests.post(self.url, headers=self.headers, json=payload)
-
+            
+            response = requests.post(self.url, headers=self.headers, data=payload)
+            
             logger.info(f"Response from page {page}: {response.status_code}")
 
             if response.status_code == 200:
                 try:
                     reports = response.text
                     reports_html = BeautifulSoup(reports, 'html.parser')
-                    self.all_reports.extend(
-                        reports_html.find_all('div', class_=self.config.extract_vars.CARD_CLASS)
-                    )
-                    logger.info(f"Page {page} OK - {len(self.all_reports)} reports")
+                    reports_on_page = reports_html.find_all('div', class_=self.config.extract_vars.CARD_CLASS)
+                    
+                    if not reports_on_page:
+                        logger.info(f"No reports found on page {page}. Stopping.")
+                        break
+                    
+                    self.all_reports.extend(reports_on_page)
+                    logger.info(f"Page {page} OK - {len(reports_on_page)} reports found - Total: {total_reports + len(reports_on_page)}")
+                    total_reports += len(reports_on_page)
+                    
+                    indicePrimeiroResultado += 10
+                    
                 except Exception as e:
                     logger.error(f"Error reading page {page}: {e}")
                     break
