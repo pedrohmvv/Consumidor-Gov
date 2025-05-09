@@ -11,13 +11,14 @@ from src.models.transformers.w2vec import Word2VecVectorizer
 from src.config import Config
 
 class Preprocessor:
-    def __init__(self, config: Config):
-        self.config = config
+    def __init__(self):
+        self.config = Config()
         self.model_path = os.path.join(
-            config.project_dir,
-            config.env_vars.src_dir,
-            config.env_vars.models_dir,
-            config.env_vars.W2VEC_model
+            self.config.project_dir,
+            self.config.env_vars.src_dir,
+            self.config.env_vars.models_dir,
+            self.config.env_vars.ml_dir,
+            self.config.env_vars.W2VEC_model
         )
         self.w2vec_model = Word2Vec.load(self.model_path)
 
@@ -41,8 +42,7 @@ class Preprocessor:
             ]
         )
 
-    def fit_transform(self, data: pd.DataFrame, target_col: str, drop_cols: list):
+    def fit_transform(self, data: pd.DataFrame):
         """Aplica o ColumnTransformer nos dados, removendo colunas indesejadas e a variável alvo."""
-        X = data.drop(columns=drop_cols + [target_col])
         transformer = self.build_column_transformer()
-        return transformer.fit_transform(X)
+        return transformer.fit_transform(data)

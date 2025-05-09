@@ -17,6 +17,13 @@ class EnvVariables:
     LOGIT_model: str
     W2VEC_model: str
 
+    database_dir: str
+    database_file: str
+    users_table: str
+    reports_table: str
+    companies_table: str
+    predictions_table: str
+
 @dataclass
 class ExtractVariables:
     API_URL: str
@@ -76,11 +83,19 @@ class Config:
             staging_dir=data.get('staging_dir'),
             ml_dir=data.get('ml_dir'),
             data_file=data.get('data_file'),
+            # Src
             src_dir=data.get('src_dir'),
             models_dir=data.get('models_dir'),
             transformers_dir=data.get('transformers_dir'),
             ml_models_dir=data.get('ml_models_dir'),
             ANN_model=data.get('ANN_model'),
             LOGIT_model=data.get('LOGIT_model'),
-            W2VEC_model=data.get('W2VEC_model')
+            W2VEC_model=data.get('W2VEC_model'),
+            # Database
+            database_dir=data.get('database_dir'),
+            database_file=data.get('database_file'),
+            users_table=data.get('users_table'),
+            reports_table=data.get('reports_table'),
+            companies_table=data.get('companies_table'),
+            predictions_table=data.get('predictions_table'),
         )
