@@ -13,13 +13,7 @@ from src.config import Config
 class Preprocessor:
     def __init__(self):
         self.config = Config()
-        self.model_path = os.path.join(
-            self.config.project_dir,
-            self.config.env_vars.src_dir,
-            self.config.env_vars.models_dir,
-            self.config.env_vars.ml_dir,
-            self.config.env_vars.W2VEC_model
-        )
+        self.model_path = self.config.w2vec_model_path
         self.w2vec_model = Word2Vec.load(self.model_path)
 
     def build_pipeline_w2v(self):
