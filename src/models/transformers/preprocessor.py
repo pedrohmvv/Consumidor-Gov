@@ -6,8 +6,8 @@ from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from gensim.models import Word2Vec
-from src.models.transformers.textcleaner import TextCleaner
-from src.models.transformers.w2vec import Word2VecVectorizer
+from src.models.transformers.modules.textcleaner import TextCleaner
+from src.models.transformers.modules.w2vec import Word2VecVectorizer
 from src.config import Config
 
 class Preprocessor:
