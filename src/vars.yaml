@@ -5,6 +5,8 @@ ml_dir: 'ml'
 data_file: 'consumidor_gov_brasil.csv'
 # Src vars
 src_dir: 'src'
+frontend_dir: 'frontend'
+backend_dir: 'backend'
 models_dir: 'models'
 transformers_dir: 'transformers'
 ANN_model: 'ANN_model.keras'

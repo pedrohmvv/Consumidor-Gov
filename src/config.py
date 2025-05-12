@@ -18,6 +18,8 @@ class EnvVariables:
     W2VEC_model: str
 
     database_dir: str
+    frontend_dir: str
+    backend_dir: str
     database_file: str
     users_table: str
     reports_table: str
@@ -85,6 +87,8 @@ class Config:
             data_file=data.get('data_file'),
             # Src
             src_dir=data.get('src_dir'),
+            frontend_dir=data.get('frontend_dir'),
+            backend_dir=data.get('backend_dir'),
             models_dir=data.get('models_dir'),
             transformers_dir=data.get('transformers_dir'),
             ANN_model=data.get('ANN_model'),
@@ -102,4 +106,4 @@ class Config:
         self.ann_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.ANN_model)
         self.logit_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.LOGIT_model)
         self.w2vec_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.W2VEC_model)
-        self.database_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.database_dir, self.env_vars.database_file)
+        self.database_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.backend_dir, self.env_vars.database_dir, self.env_vars.database_file)
