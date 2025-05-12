@@ -1,7 +1,23 @@
 # Env vars
 data_dir: 'data'
 staging_dir: 'staging_area'
-data_file: 'consumidor_gov_brasil'
+ml_dir: 'ml'
+data_file: 'consumidor_gov_brasil.csv'
+# Src vars
+src_dir: 'src'
+models_dir: 'models'
+transformers_dir: 'transformers'
+ANN_model: 'ANN_model.keras'
+LOGIT_model: 'logit_model.pkl'
+W2VEC_model: 'word2vec.model'
+# Database vars
+database_dir: 'database'
+database_file: 'consumidor_gov_brasil.db'
+users_table: 'users'
+reports_table: 'reports'
+companies_table: 'companies'
+predictions_table: 'predictions'
+ml_files_dir: 'files'
 
 # Extract vars
 API_URL: 'https://consumidor.gov.br/pages/indicador/relatos/consultar'

@@ -1,2 +1,4 @@
 __pycache__
 test.py
+*.db
+/src/backend/database/*.db
