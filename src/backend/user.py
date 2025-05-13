@@ -6,7 +6,30 @@ class User:
         self.id_company = id_company
         self.cpf_user = cpf_user
         self.email = email
-        self.__pwd = pwd
+        self.pwd = pwd
+
+    def to_dict(self):
+        return {
+            "id_user": self.id_user,
+            "name": self.name,
+            "user_type": self.user_type,
+            "id_company": self.id_company,
+            "cpf_user": self.cpf_user,
+            "email": self.email,
+            "password": self.pwd  
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            id_user=data["id_user"],
+            name=data["name"],
+            user_type=data["user_type"],
+            id_company=data["id_company"],
+            cpf_user=data["cpf_user"],
+            email=data["email"],
+            pwd=data["password"] 
+        )
 
     def is_consumer(self):
         return self.user_type == "cidadao"

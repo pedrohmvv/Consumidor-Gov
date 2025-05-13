@@ -4,10 +4,12 @@ from src.config import Config
 from tinydb import TinyDB, Query
 from src.backend.database import Database
 from src.backend.user import User
+from src.backend.login import Login
 
 class LoginPage:
     def __init__(self):
         self.db = Database()
+        self.backend = Login(st.session_state)
         self.config = Config()
 
     def main(self):
@@ -30,11 +32,8 @@ class LoginPage:
         password = st.text_input("Senha", type="password")
         
         if st.button("Entrar"):
-            user = self.db.get_user(email, password)
+            user = self.backend.login(email, password)
             if user:
-                st.session_state.usuario = email
-                st.session_state.pagina = user.user_type
-                st.session_state.user = user
                 st.success("Login bem-sucedido!")
                 st.experimental_rerun()
             else:
@@ -48,32 +47,28 @@ class LoginPage:
         )
 
     def register_form(self):
+        roles_map = {
+            "Consumidor": "cidadao",
+            "Empresa": "empresa",
+            "Servidor": "servidor"
+        }
+        companies = self.backend.get_companies()
+
         email = st.text_input("Email")
         password = st.text_input("Senha", type="password")
-        role = st.selectbox("Escolha o seu papel", ["consumer", "company", "admin"])
+        role = st.selectbox("Informe o seu papel", ["Consumidor", "Empresa", "Servidor"])
         cpf_user = st.text_input("CPF")
         name = st.text_input("Nome")
-        company_name = st.selectbox("Nome da empresa", ["<LISTA_NOMES_EMPRESAS>"])
+        if role == "Empresa":
+            company_name = st.selectbox("Nome da empresa", companies)
+        else:
+            company_name = None
         
-        id_company, _ = self.db.get_company(company_name)
-        last_id = self.db.get_last_id("users")
-        id_user = last_id + 1
-
-        user = User(
-            id_user=id_user,
-            name=name,
-            user_type=role,
-            id_company=id_company,
-            cpf_user=cpf_user,
-            email=email,
-            pwd=password
-        )
+        user = self.backend.create_user(email, password, name, roles_map[role], company_name, cpf_user)
 
         if st.button("Registrar"):
-            if not self.db.search_user(user):
-                self.db.insert_user(user)
-                st.session_state.usuario = user.name
-                st.session_state.pagina = "cidadao"  
+            if self.backend.insert_user(user):
                 st.success("Registro bem-sucedido!")
+                st.experimental_rerun()
             else:
                 st.error("Este email já está registrado!")

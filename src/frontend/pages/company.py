@@ -10,5 +10,5 @@ class CompanyPage:
 
     def main(self):
         st.title("Página da Empresa")
-        st.write(f"Bem-vindo (a), {self.user.name}!")
+        st.write(f"Bem-vindo(a), {self.user.name}!")
         pass

@@ -8,6 +8,7 @@ class EnvVariables:
     staging_dir: str
     ml_dir: str
     data_file: str
+    ml_data_file: str
 
     src_dir: str
     models_dir: str
@@ -25,6 +26,7 @@ class EnvVariables:
     reports_table: str
     companies_table: str
     predictions_table: str
+    states: list[str]
 
 @dataclass
 class ExtractVariables:
@@ -85,6 +87,7 @@ class Config:
             staging_dir=data.get('staging_dir'),
             ml_dir=data.get('ml_dir'),
             data_file=data.get('data_file'),
+            ml_data_file=data.get('ml_data_file'),
             # Src
             src_dir=data.get('src_dir'),
             frontend_dir=data.get('frontend_dir'),
@@ -102,8 +105,10 @@ class Config:
             companies_table=data.get('companies_table'),
             predictions_table=data.get('predictions_table'),
             ml_files_dir=data.get('ml_files_dir'),
+            states=data.get('states')
         )
         self.ann_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.ANN_model)
         self.logit_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.LOGIT_model)
         self.w2vec_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.W2VEC_model)
         self.database_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.backend_dir, self.env_vars.database_dir, self.env_vars.database_file)
+        self.data_fit_path = join(self.project_dir, self.env_vars.data_dir, self.env_vars.ml_dir, self.env_vars.ml_data_file)

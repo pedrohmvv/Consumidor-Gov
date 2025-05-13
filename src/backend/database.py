@@ -7,20 +7,17 @@ class Database:
     def __init__(self):
         self.config = Config()
         self.db = TinyDB(self.config.database_path)
-        self.tables = {
-            'users': self.db.table('users'),
-            'reports': self.db.table('reports'),
-            'companies': self.db.table('companies'),
-            'predictions': self.db.table('predictions')
-        }
+        self.users_table = self.db.table('users')
+        self.reports_table = self.db.table('reports')
+        self.companies_table = self.db.table('companies')
+        self.predictions_table = self.db.table('predicitons')
 
     def get_db(self):
         return self.db
-    
+
     def get_user(self, email, password):
         query = Query()
-        users_table = self.tables['users']
-        user_meta = users_table.search((query.email == email) & (query.password == password))
+        user_meta = self.users_table.search((query.email == email) & (query.password == password))
         if user_meta:
             user_meta = user_meta[0]
             user = User(
@@ -36,28 +33,71 @@ class Database:
             return user
         else:
             return None
+        
+    def get_reports(self, user: User = None):
+        query = Query()
+        if user == None:
+            return self.reports_table.all()
+        else:
+            return self.reports_table.search(query.id_user == user.id_user)
+        
+    def get_predictions(self, user: User):
+        query = Query()
+
+        user_reports = self.reports_table.search(query.id_user == user.id_user)
+        user_report_ids = [report['id_report'] for report in user_reports]
+        user_predictions = self.predictions_table.search(query.id_report.one_of(user_report_ids))
+
+        return user_predictions
+
+    def update_prediction(self, id_report, predictions):
+        query = Query() 
+        try:
+            self.predictions_table.update(
+                {
+                'prediction': predictions['prediction'],
+                'predicted_label': predictions['predicted_label'],
+                'true_label': predictions['true_label']
+                }, query.id_report == id_report
+            )
+            return True
+        except Exception as e:
+            print(f"Error updating prediction: {e}")
+            return False
 
     def search_user(self, user: User):
         query = Query()
-        users_table = self.tables['users']
-        if users_table.search(query.email == user.email):
+        if self.users_table.search(query.email == user.email):
             return True    
         return False
 
+    def get_user_by_email(self, email):
+        users_table = self.db.table("users")
+        result = users_table.search(Query().email == email)
+        if result:
+            return User.from_dict(result[0])
+        return None
+
     def get_company(self, company_name):
         query = Query()
-        companies_table = self.tables['companies']
-        result = companies_table.search(query.company_name == company_name)
-        if result:
-            company = result[0]
+        if self.companies_table.search(query.company_name == company_name):
+            result = self.companies_table.search(query.company_name == company_name)
+            if result:
+                company = result[0]
             return company["id_company"], company["company_name"]    
         return None, None
     
+    def get_companies(self):
+        return [company["company_name"] for company in self.companies_table.all()]
+    
+    def get_states(self):
+        return self.config.env_vars.states
+
     def get_last_id(self, table_name):
-        table = self.db.table(table_name)
-        all_records = table.all()
-        if all_records:
-            return max(record["id_user"] for record in all_records)
+        if self.db.table(table_name):
+            all_records = self.db.table(table_name).all()
+            if all_records:
+                return max(record["id_user"] for record in all_records)
         else:
             return 0
 
@@ -72,13 +112,22 @@ class Database:
             "password": user.pwd  
         }
         try:
-            table_users = self.db.table("users")
-            table_users.insert(user_meta)
+            self.users_table.insert(user_meta)
         except Exception as e:
             print(f"Error inserting user: {e}")
 
     def insert_report(self, report):
-        pass
+        report_dict = report.to_dict()
+        try:
+            self.reports_table.insert(report_dict)
+        except Exception as e:
+            print(f"Error inserting report: {e}")
+
+    def insert_prediction(self, prediction):
+        try:
+            self.predictions_table.insert(prediction)
+        except Exception as e:
+            print(f"Error inserting prediction: {e}")
 
     def insert_report_company_response(self, report_id, company_response):
         pass

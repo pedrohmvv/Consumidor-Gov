@@ -13,11 +13,11 @@ def main():
     if st.session_state.pagina == "login":
         LoginPage().main()
     elif st.session_state.pagina == "cidadao":
-        ConsumerPage(st.session_state.user).main()
+        ConsumerPage(st.session_state).main()
     elif st.session_state.pagina == "empresa":
-        CompanyPage(st.session_state.user).main()
+        CompanyPage(st.session_state).main()
     elif st.session_state.pagina == "servidor":
-        ServantPage().main()
+        ServantPage(st.session_state).main()
     else:
         st.error("Página não encontrada!")
 

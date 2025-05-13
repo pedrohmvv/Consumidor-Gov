@@ -10,4 +10,5 @@ class ServantPage:
 
     def main(self):
         st.title("Página do Servidor")
+        st.write(f"Bem-vindo(a), {self.user.name}!")
         pass
