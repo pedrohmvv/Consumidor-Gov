@@ -15,6 +15,18 @@ class Preprocessor:
         self.config = Config()
         self.model_path = self.config.w2vec_model_path
         self.w2vec_model = Word2Vec.load(self.model_path)
+        self.data_fit = pd.read_csv(self.config.data_fit_path, sep='|', encoding='utf-8', compression='gzip').dropna(subset=['clean_report'])
+        self.built = False
+        self.X_cols = [
+            'clean_report', 
+            'clean_response', 
+            'consumidor_respondeu',
+            'dias_para_resposta', 
+            'nota_logit', 
+            'respondido', 
+            'uf'
+        ]
+        self.fit_transform()
 
     def build_pipeline_w2v(self):
         return Pipeline([
@@ -36,7 +48,17 @@ class Preprocessor:
             ]
         )
 
-    def fit_transform(self, data: pd.DataFrame):
+    def fit_transform(self):
         """Aplica o ColumnTransformer nos dados, removendo colunas indesejadas e a variável alvo."""
-        transformer = self.build_column_transformer()
-        return transformer.fit_transform(data)
+        try:
+            transformer = self.build_column_transformer()
+            self.transformer = transformer.fit(self.data_fit[self.X_cols])
+            self.built = True
+        except Exception as e:
+            print(f"Erro ao ajustar o ColumnTransformer: {e}")
+            return None
+    
+    def transform(self, data: pd.DataFrame):
+        if not self.built:
+            raise ValueError("O preprocessador não foi ajustado. Chame o método fit_transform primeiro.")
+        return self.transformer.transform(data)

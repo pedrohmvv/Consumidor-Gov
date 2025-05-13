@@ -1,4 +1,5 @@
 import joblib
+from numpy import argmax
 from tensorflow.keras.models import load_model
 from src.config import Config
 from src.models.ml.base_model import BaseModel
@@ -23,4 +24,7 @@ class ANN(BaseModel):
         self.model = load_model(self.model_path)
 
     def predict(self, X):
-        return self.model.predict(X)    
+        return self.model.predict(X)   
+
+    def predict_label(self, prediction):
+        return argmax(prediction, axis=1)

@@ -3,8 +3,11 @@ data_dir: 'data'
 staging_dir: 'staging_area'
 ml_dir: 'ml'
 data_file: 'consumidor_gov_brasil.csv'
+ml_data_file: 'consumidor_gov_brasil_ml.csv'
 # Src vars
 src_dir: 'src'
+frontend_dir: 'frontend'
+backend_dir: 'backend'
 models_dir: 'models'
 transformers_dir: 'transformers'
 ANN_model: 'ANN_model.keras'
@@ -16,8 +19,9 @@ database_file: 'consumidor_gov_brasil.db'
 users_table: 'users'
 reports_table: 'reports'
 companies_table: 'companies'
-predictions_table: 'predictions'
+predictions_table: 'predicitons'
 ml_files_dir: 'files'
+states: ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']
 
 # Extract vars
 API_URL: 'https://consumidor.gov.br/pages/indicador/relatos/consultar'
