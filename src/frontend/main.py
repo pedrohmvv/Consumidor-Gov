@@ -13,14 +13,5 @@ class Frontend:
             "servant": ServantPage(self.session_state)
         }
     
-    def login(self):
-        self.pages["login"].main()
-
-    def consumer(self):
-        self.pages["consumer"].main()
-
-    def company(self):
-        self.pages["company"].main()
-
-    def servant(self):
-        self.pages["servant"].main()
+    def run(self, page):
+        self.pages[page].main()

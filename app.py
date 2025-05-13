@@ -9,13 +9,13 @@ def main():
         st.session_state.pagina = "login"
 
     if st.session_state.pagina == "login":
-        frontend.login()
+        frontend.run("login")
     elif st.session_state.pagina == "cidadao":
-        frontend.consumer()
+        frontend.run("consumer")
     elif st.session_state.pagina == "empresa":
-        frontend.company()
+        frontend.run("company")
     elif st.session_state.pagina == "servidor":
-        frontend.servant()
+        frontend.run("servant")
     else:
         st.error("Página não encontrada!")
 

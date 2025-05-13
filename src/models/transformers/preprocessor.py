@@ -49,7 +49,6 @@ class Preprocessor:
         )
 
     def fit_transform(self):
-        """Aplica o ColumnTransformer nos dados, removendo colunas indesejadas e a variável alvo."""
         try:
             transformer = self.build_column_transformer()
             self.transformer = transformer.fit(self.data_fit[self.X_cols])
