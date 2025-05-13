@@ -4,12 +4,13 @@ from src.frontend.pages.company import CompanyPage
 from src.frontend.pages.servant import ServantPage
 
 class Frontend:
-    def __init__(self):
+    def __init__(self, session_state):
+        self.session_state = session_state
         self.pages = {
             "login": LoginPage(),
-            "consumer": ConsumerPage(),
-            "company": CompanyPage(),
-            "servant": ServantPage()
+            "consumer": ConsumerPage(self.session_state),
+            "company": CompanyPage(self.session_state),
+            "servant": ServantPage(self.session_state)
         }
     
     def login(self):

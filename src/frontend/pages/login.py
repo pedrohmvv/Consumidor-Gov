@@ -1,9 +1,7 @@
 # src/frontend/login.py
 import streamlit as st
 from src.config import Config
-from tinydb import TinyDB, Query
 from src.backend.database import Database
-from src.backend.user import User
 from src.backend.login import Login
 
 class LoginPage:
