@@ -21,7 +21,7 @@ class Consumer:
         date = datetime.now().strftime("%d/%m/%Y")
         id_user = self.session_state.user.id_user
         id_company, _ = self.db.get_company(company)
-        date_str = date + ', - ' + state
+        date_str = date + ' - ' + state
         last_id = self.db.get_last_id('reports')
         id_report = last_id + 1
         report = Report(
@@ -84,7 +84,8 @@ class Consumer:
             'uf': [state]
         }
 
-        features = self.preprocessor.transform(DataFrame(df_dict))
+        df_features = DataFrame(df_dict)
+        features = self.preprocessor.transform(df_features)
         return features
 
     def predict_report(self, report):
@@ -109,3 +110,49 @@ class Consumer:
 
     def update_prediction(self, id_report, predictions):
         return self.db.update_prediction(id_report, predictions)
+
+    def get_companies(self):
+        return self.db.get_companies()
+    
+    def get_table(self, table_name):
+        return self.db.get_table(table_name)
+    
+    def get_states(self):
+        return self.db.get_states()
+
+    def get_company_name(self, id_company):
+        return self.db.get_company_name(id_company)
+    
+    def get_report(self, report_id):
+        return self.db.get_report(report_id)
+    
+    def update_report_evaluation(self, report_id, rating, evaluation, resolved):
+        try:
+            self.db.update_report_evaluation(report_id, rating, evaluation, resolved)
+            return True
+        except Exception as e:
+            st.error(f"Erro ao atualizar avaliação: {e}")
+            return False
+        
+    def get_dashboard_data(self):
+        reports = self.get_reports()
+        predictions = self.get_table('predictions')
+        companies = self.get_table('companies')
+
+        
+        df_reports = DataFrame(reports)
+        df_predictions = DataFrame(predictions)
+        df_companies = DataFrame(companies)
+
+        df = (
+            df_reports
+            .merge(df_predictions, on='id_report', how='left')
+            .merge(df_companies, on='id_company', how='left')
+            .assign(non_resolution_prob=lambda x: 1 - x.prediction)
+            .sort_values('prediction', ascending=False)
+        )
+
+        return df
+        
+        
+

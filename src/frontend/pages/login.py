@@ -13,8 +13,7 @@ class LoginPage:
     def main(self):
         st.title("Login / Registro")
 
-        if "usuario" in st.session_state:
-            st.session_state.pagina = ''
+        if "user" in st.session_state:
             st.success("Usuário já logado!")
             return  
 
@@ -32,8 +31,10 @@ class LoginPage:
         if st.button("Entrar"):
             user = self.backend.login(email, password)
             if user:
+                st.session_state.user = user
+                st.session_state.pagina = user.user_type
                 st.success("Login bem-sucedido!")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Email ou senha inválidos!")
 
@@ -66,7 +67,9 @@ class LoginPage:
 
         if st.button("Registrar"):
             if self.backend.insert_user(user):
+                st.session_state.user = user
+                st.session_state.pagina = user.user_type
                 st.success("Registro bem-sucedido!")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("Este email já está registrado!")

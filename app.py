@@ -5,16 +5,16 @@ from src.frontend.main import Frontend
 frontend = Frontend(st.session_state)
 
 def main():
-    if "pagina" not in st.session_state:
-        st.session_state.pagina = "login"
+    if "pagina" not in frontend.session_state:
+        frontend.session_state.pagina = "login"
 
-    if st.session_state.pagina == "login":
+    if frontend.session_state.pagina == "login":
         frontend.run("login")
-    elif st.session_state.pagina == "cidadao":
+    elif frontend.session_state.pagina == "cidadao":
         frontend.run("consumer")
-    elif st.session_state.pagina == "empresa":
+    elif frontend.session_state.pagina == "empresa":
         frontend.run("company")
-    elif st.session_state.pagina == "servidor":
+    elif frontend.session_state.pagina == "servidor":
         frontend.run("servant")
     else:
         st.error("Página não encontrada!")
