@@ -136,13 +136,15 @@ class Consumer:
         
     def get_dashboard_data(self):
         reports = self.get_reports()
-        predictions = self.get_table('predictions')
+        predictions = self.get_predictions()
         companies = self.get_table('companies')
 
-        
         df_reports = DataFrame(reports)
         df_predictions = DataFrame(predictions)
         df_companies = DataFrame(companies)
+
+        if df_reports.empty:
+            return DataFrame()
 
         df = (
             df_reports
