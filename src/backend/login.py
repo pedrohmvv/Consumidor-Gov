@@ -14,7 +14,7 @@ class Login:
             self.session_state.usuario = email
             self.session_state.pagina = user.user_type
             self.session_state.user = user
-            return True
+            return user
         return False
     
     def create_user(self, email, password, name, role, company_name, cpf_user):

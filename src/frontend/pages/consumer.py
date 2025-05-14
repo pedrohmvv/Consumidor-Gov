@@ -56,7 +56,6 @@ class ConsumerPage:
                 self.backend.insert_report(report)
                 st.success("Reclamação enviada com sucesso!")
                 st.write('##')
-
                 with st.spinner("Calculando a probabilidade de resolução..."):
                     prediction = self.backend.predict_report(report)
                     probability = prediction['prediction'][0][0]
@@ -67,7 +66,8 @@ class ConsumerPage:
 
                     st.write(f"<span style='color: {color};'>Probabilidade da sua reclamação ser resolvida: {probability_resolvida*100:.2f}%</span>", unsafe_allow_html=True)
                     st.write(f"<span style='color: gray;'>Probabilidade da sua reclamação NÃO ser resolvida: {probability_nao_resolvida*100:.2f}%</span>", unsafe_allow_html=True)
-        
+                st.rerun()
+
     def complaints_sidebar(self):
         # Aplica o estilo CSS para rolagem
         st.write('Aqui suas reclamações aparecem de forma ordenada pela probabilidade de não-resolução.')

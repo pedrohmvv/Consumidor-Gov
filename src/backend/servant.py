@@ -1,6 +1,7 @@
 from src.backend.database import Database
 from src.config import Config
-from pandas import DataFrame
+from pandas import DataFrame, to_datetime
+from numpy import where, nan
 
 class Servant:
     def __init__(self, session_state):
@@ -19,6 +20,7 @@ class Servant:
         predictions = self.get_table('predictions')
         companies = self.get_table('companies')
 
+        
         df_reports = DataFrame(reports)
         df_predictions = DataFrame(predictions)
         df_companies = DataFrame(companies)
@@ -27,7 +29,11 @@ class Servant:
             df_reports
             .merge(df_predictions, on='id_report', how='left')
             .merge(df_companies, on='id_company', how='left')
-            .assign(non_resolution_prob=lambda x: 1 - x.prediction)
+            .assign(
+                non_resolution_prob=lambda x: 1 - x.prediction,
+                date_format=lambda x: to_datetime(x.date.str.slice(0, 10), dayfirst=True),
+                rating = lambda x: x.rating_score.str.extract('(\d+)').astype('Int64')                
+            )
             .sort_values('prediction', ascending=False)
         )
 

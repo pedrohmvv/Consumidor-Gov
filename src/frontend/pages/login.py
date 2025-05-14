@@ -5,15 +5,17 @@ from src.backend.database import Database
 from src.backend.login import Login
 
 class LoginPage:
-    def __init__(self):
+    def __init__(self, session_state):
         self.db = Database()
-        self.backend = Login(st.session_state)
+        self.session_state = session_state
+        self.backend = Login(session_state)
         self.config = Config()
 
     def main(self):
         st.title("Login / Registro")
 
-        if "user" in st.session_state:
+        if "usuario" in self.session_state:
+            self.session_state.pagina = ''
             st.success("Usuário já logado!")
             return  
 
@@ -31,9 +33,9 @@ class LoginPage:
         if st.button("Entrar"):
             user = self.backend.login(email, password)
             if user:
-                st.session_state.user = user
-                st.session_state.pagina = user.user_type
                 st.success("Login bem-sucedido!")
+                self.session_state.user = user
+                self.session_state.pagina = user.user_type
                 st.rerun()
             else:
                 st.error("Email ou senha inválidos!")
@@ -64,12 +66,11 @@ class LoginPage:
             company_name = None
         
         user = self.backend.create_user(email, password, name, roles_map[role], company_name, cpf_user)
-
         if st.button("Registrar"):
             if self.backend.insert_user(user):
-                st.session_state.user = user
-                st.session_state.pagina = user.user_type
-                st.success("Registro bem-sucedido!")
+                st.success("Registro bem-sucedido!")    
+                self.session_state.user = user
+                self.session_state.pagina = user.user_type
                 st.rerun()
             else:
                 st.error("Este email já está registrado!")
