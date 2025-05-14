@@ -132,7 +132,7 @@ class Database:
     def get_table(self, table_name):
         return {
             'reports': self.reports_table,
-            'predictions': self.predictions_table,
+            'predicitons': self.predictions_table,
             'companies': self.companies_table,
         }[table_name]
 

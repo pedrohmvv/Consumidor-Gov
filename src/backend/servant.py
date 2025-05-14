@@ -2,6 +2,7 @@ from src.backend.database import Database
 from src.config import Config
 from pandas import DataFrame, to_datetime
 from numpy import where, nan
+import streamlit as st
 
 class Servant:
     def __init__(self, session_state):
@@ -17,7 +18,7 @@ class Servant:
 
     def get_dashboard_data(self):
         reports = self.get_reports()
-        predictions = self.get_table('predictions')
+        predictions = self.get_table('predicitons')
         companies = self.get_table('companies')
 
         

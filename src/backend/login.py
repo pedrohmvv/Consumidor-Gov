@@ -12,7 +12,7 @@ class Login:
         user = self.db.get_user_by_email(email)
         if user and self.check_password(password, user.pwd):
             self.session_state.usuario = email
-            self.session_state.pagina = user.user_type
+            self.session_state.pagina = "login" 
             self.session_state.user = user
             return user
         return False

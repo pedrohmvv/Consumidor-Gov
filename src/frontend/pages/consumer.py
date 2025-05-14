@@ -72,6 +72,9 @@ class ConsumerPage:
         # Aplica o estilo CSS para rolagem
         st.write('Aqui suas reclamações aparecem de forma ordenada pela probabilidade de não-resolução.')
         df = self.data
+        if df.empty:
+            st.info("Você ainda não enviou nenhuma reclamação.")
+            return
 
         with st.container():
             for index, row in df.iterrows():
@@ -104,13 +107,12 @@ class ConsumerPage:
                                 st.rerun()
                     else:
                         st.write("A empresa ainda não respondeu a esta reclamação.")
-            st.markdown('</div>', unsafe_allow_html=True)
 
     def dashboard(self):
         df = self.data
-
+                
         if df.empty:
-            st.info("Você ainda não enviou nenhuma reclamação.")
+            st.info("Você ainda não possui nenhuma reclamação.")
             return
 
         # 1st line: Summary metrics

@@ -7,7 +7,10 @@ from numpy import nan
 from src.backend.database import Database
 from src.config import Config
 from src.backend.servant import Servant
+from src.models.ml.models import ANN
 
+global prod_model
+prod_model = ANN()
 
 class ServantPage:
     def __init__(self, session_state):
@@ -20,13 +23,23 @@ class ServantPage:
     def main(self):
         st.title("Página do Servidor")
         st.write(f"Bem-vindo(a), {self.session_state.user.name}!")
-        self.dashboard()
+        
+        with st.spinner("Carregando dados..."):
+            self.dashboard()
 
     def dashboard(self):
+        st.write('---')
         st.subheader("Visão Geral das Reclamações")
-
+        
         df = self.data
 
+        # Model metrics
+        model_metrics = prod_model.get_metrics()
+        model_acc = model_metrics['accuracy']
+        model_f1 = model_metrics['f1_score']
+        model_precision = model_metrics['precision']
+        model_recall = model_metrics['recall']
+        
         # Filtrar empresas com pelo menos 20 reclamações
         company_counts = df["company_name"].value_counts()
         valid_companies = company_counts[company_counts >= 20].index
@@ -35,29 +48,45 @@ class ServantPage:
         total = len(df)
         resolved = df[df["status"] == "Resolvido"]
         unresolved = df[df["status"] == "Não Resolvido"]
-        not_returned = df[df["status"] == "Não avaliado pelo consumidor"]
-        
+
+        mean_resolution_prob_df = (
+            df.groupby(["id_company", "company_name"]).agg({
+                "prediction": "mean",
+                "id_report": "count"
+            }).reset_index()
+        )
+        mean_resolution_prob_df = mean_resolution_prob_df[mean_resolution_prob_df["id_report"] >= 20]
         # Proporções para as taxas
         prop_resolved = len(resolved) / total
         prop_unresolved = len(unresolved) / total
-        prop_not_returned = len(not_returned) / total
 
         # Cálculo das taxas
         resolution_rate = prop_resolved * 100
         unresolved_rate = prop_unresolved * 100
-        not_returned_rate = prop_not_returned * 100
+        mean_resolution_prob = mean_resolution_prob_df["prediction"].mean()
 
         # 1st line: total, resolved, unresolved
         col1, col2, col3 = st.columns(3)
         col1.metric("Total de Reclamações", total)
         col2.metric("✅ Resolvidas", len(resolved))
         col3.metric("❌ Não Resolvidas", len(unresolved))
-
+        # 2nd line: metrics and mean resolution probability
         col4, col5, col6 = st.columns(3)
         col4.metric("Taxa de Resolução", f"{resolution_rate:.2f}%")
         col5.metric("Taxa de Não-Resolução", f"{unresolved_rate:.2f}%")
-        col6.metric("Taxa de Não Retornadas", f"{not_returned_rate:.2f}%")
-        # 2nd line: graph
+        col6.metric("Probabilidade Média de Resolução das Reclamações", f"{mean_resolution_prob*100:.2f}%")
+        
+        # 3rd line: model metrics
+        st.write("---")
+        st.subheader("Métricas do Modelo em Produção")
+        st.write(f"Modelo: {model_metrics['type']}")
+
+        model_col1, model_col2, model_col3, model_col4 = st.columns(4)
+        model_col1.metric("Acurácia", f"{model_acc*100:.2f}%")
+        model_col2.metric("F1-Score", f"{model_f1*100:.2f}%")
+        model_col3.metric("Precisão", f"{model_precision*100:.2f}%")
+        model_col4.metric("Recall", f"{model_recall*100:.2f}%")
+        # 4th line: graph
         st.write("---")
         st.subheader("📅 Resoluções ao Longo do Tempo")
         df["day"] = df["date_format"].dt.date
@@ -76,7 +105,7 @@ class ServantPage:
         ).properties(height=400)
 
         st.altair_chart(chart, use_container_width=True)
-        # 3rd line: top companies
+        # 5th line: top companies
         st.write("---")
         st.subheader("Empresas em Destaque")
 
@@ -106,7 +135,7 @@ class ServantPage:
             st.markdown("#### Menor Taxa de Resolução")
             worst_res = company_resolutions.sort_values("Taxa de Resolução").head(5)
             st.dataframe(worst_res, use_container_width=True)
-        # 4th line: ratings
+        # 6th line: ratings
         st.write("---")
         st.subheader("Avaliações das Reclamações")
 
@@ -115,19 +144,39 @@ class ServantPage:
         df_ratings = df_filtered[df_filtered["rating"] != nan].assign(rating = lambda x: x.rating.astype(int))
         with col10:
             st.markdown("#### Média Geral")
-            mean_score = df_ratings["rating"].mean()
+            mean_reports_per_company_df = (
+                df.groupby("company_name").agg({
+                    "id_report": "count",
+                    "rating": "mean"
+                }).reset_index()
+            )
+            mean_reports_per_company_df['count'] = mean_reports_per_company_df['id_report'].astype(int)
+            
+            mean_score = mean_reports_per_company_df["rating"].mean()
+            mean_reports = mean_reports_per_company_df["count"].mean()
+            st.write(f"###### Métricas Gerais")
             st.metric("Nota Média", f"{mean_score:.2f}")
+            st.metric("Média de Reclamações por Empresa", f"{mean_reports:.2f}")
 
         with col11:
             st.markdown("#### Por Status")
-            avg_by_status = df_ratings.groupby("status").agg({
+            avg_by_status = df.groupby("status").agg({
                 'rating': [
                     'count',
                       'mean'
                 ]
             }).reset_index()
-            avg_by_status.columns = ["Status", "Total de Reclamações", "Média de Avaliação"]
-            st.dataframe(avg_by_status, use_container_width=True)
+            
+            col11_1, col11_2 = st.columns(2)
+            with col11_1:
+                st.markdown("###### ✅ Resolvido")
+                st.metric("Total de Reclamações", f"{avg_by_status['rating']['count'][0]}")
+                st.metric("Média de Avaliação", f"{avg_by_status['rating']['mean'][0]:.2f}")
+            
+            with col11_2:
+                st.markdown("###### ❌ Não Resolvido")
+                st.metric("Total de Reclamações", f"{avg_by_status['rating']['count'][1]}")
+                st.metric("Média de Avaliação", f"{avg_by_status['rating']['mean'][1]:.2f}")
 
         st.markdown("#### Por Empresa")
         avg_by_company = df_ratings.groupby("company_name").agg({
@@ -138,7 +187,7 @@ class ServantPage:
         }).reset_index()
         avg_by_company.columns = ["Empresa", "Total de Reclamações", "Média de Avaliação"]
         st.dataframe(avg_by_company, use_container_width=True)
-        # 5th line: probability
+        # 7th line: probability
         st.write("---")
         st.subheader("Probabilidade de Resolução")
 

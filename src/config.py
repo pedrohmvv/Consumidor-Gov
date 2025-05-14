@@ -17,6 +17,7 @@ class EnvVariables:
     ANN_model: str
     LOGIT_model: str
     W2VEC_model: str
+    metrics_dir: str
 
     database_dir: str
     frontend_dir: str
@@ -94,6 +95,7 @@ class Config:
             backend_dir=data.get('backend_dir'),
             models_dir=data.get('models_dir'),
             transformers_dir=data.get('transformers_dir'),
+            metrics_dir=data.get('metrics_dir'),
             ANN_model=data.get('ANN_model'),
             LOGIT_model=data.get('LOGIT_model'),
             W2VEC_model=data.get('W2VEC_model'),
@@ -107,8 +109,16 @@ class Config:
             ml_files_dir=data.get('ml_files_dir'),
             states=data.get('states')
         )
-        self.ann_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.ANN_model)
-        self.logit_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.LOGIT_model)
         self.w2vec_model_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.W2VEC_model)
         self.database_path = join(self.project_dir, self.env_vars.src_dir, self.env_vars.backend_dir, self.env_vars.database_dir, self.env_vars.database_file)
         self.data_fit_path = join(self.project_dir, self.env_vars.data_dir, self.env_vars.ml_dir, self.env_vars.ml_data_file)
+        self.model_configs = {
+            'ANN': {
+                'model_path': join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.ANN_model),
+                'metrics_path': join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.metrics_dir,  'ANN_metrics.json')
+            },
+            'LOGIT': {
+                'model_path': join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.ml_files_dir, self.env_vars.LOGIT_model),
+                'metrics_path': join(self.project_dir, self.env_vars.src_dir, self.env_vars.models_dir, self.env_vars.ml_dir, self.env_vars.metrics_dir, 'logit_metrics.json')
+            }
+        }
