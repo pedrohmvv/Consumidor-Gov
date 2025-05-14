@@ -1,14 +1,182 @@
+import streamlit as st
+import pandas as pd
+import altair as alt
+
+from numpy import nan
+
 from src.backend.database import Database
 from src.config import Config
-import streamlit as st
+from src.backend.servant import Servant
+
 
 class ServantPage:
-    def __init__(self, user):
+    def __init__(self, session_state):
         self.db = Database()
         self.config = Config()
-        self.user = user
+        self.backend = Servant(session_state)
+        self.session_state = session_state
+        self.data = self.backend.get_dashboard_data()
 
     def main(self):
         st.title("Página do Servidor")
-        st.write(f"Bem-vindo(a), {self.user.name}!")
-        pass
+        st.write(f"Bem-vindo(a), {self.session_state.user.name}!")
+        self.dashboard()
+
+    def dashboard(self):
+        st.subheader("Visão Geral das Reclamações")
+
+        df = self.data
+
+        # Filtrar empresas com pelo menos 20 reclamações
+        company_counts = df["company_name"].value_counts()
+        valid_companies = company_counts[company_counts >= 20].index
+        df_filtered = df[df["company_name"].isin(valid_companies)]
+
+        total = len(df)
+        resolved = df[df["status"] == "Resolvido"]
+        unresolved = df[df["status"] == "Não Resolvido"]
+        not_returned = df[df["status"] == "Não avaliado pelo consumidor"]
+        
+        # Proporções para as taxas
+        prop_resolved = len(resolved) / total
+        prop_unresolved = len(unresolved) / total
+        prop_not_returned = len(not_returned) / total
+
+        # Cálculo das taxas
+        resolution_rate = prop_resolved * 100
+        unresolved_rate = prop_unresolved * 100
+        not_returned_rate = prop_not_returned * 100
+
+        # 1st line: total, resolved, unresolved
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total de Reclamações", total)
+        col2.metric("✅ Resolvidas", len(resolved))
+        col3.metric("❌ Não Resolvidas", len(unresolved))
+
+        col4, col5, col6 = st.columns(3)
+        col4.metric("Taxa de Resolução", f"{resolution_rate:.2f}%")
+        col5.metric("Taxa de Não-Resolução", f"{unresolved_rate:.2f}%")
+        col6.metric("Taxa de Não Retornadas", f"{not_returned_rate:.2f}%")
+        # 2nd line: graph
+        st.write("---")
+        st.subheader("📅 Resoluções ao Longo do Tempo")
+        df["day"] = df["date_format"].dt.date
+
+        df_by_day = (
+            df.groupby(["day", "status"])
+            .size()
+            .reset_index(name="count")
+        )
+
+        chart = alt.Chart(df_by_day).mark_line(point=True).encode(
+            x=alt.X("day:T", title="Dia"),
+            y=alt.Y("count:Q", title="Qtd. de Reclamações"),
+            color=alt.Color("status:N", title="Status"),
+            tooltip=["day:T", "status:N", "count:Q"]
+        ).properties(height=400)
+
+        st.altair_chart(chart, use_container_width=True)
+        # 3rd line: top companies
+        st.write("---")
+        st.subheader("Empresas em Destaque")
+
+        col6, col7 = st.columns(2)
+
+        with col6:
+            st.markdown("#### Mais Reclamações")
+            top_companies = df_filtered["company_name"].value_counts().head(5).reset_index()
+            top_companies['Proporção'] = top_companies['count'] / total
+            top_companies.columns = ["Empresa", "Qtd", "Proporção"]
+            st.dataframe(top_companies, use_container_width=True)
+
+        with col7:
+            st.markdown("#### Maior Taxa de Resolução")
+            company_resolutions = df_filtered.groupby("company_name").agg({
+                'status': [
+                    'count',                                  
+                    lambda x: (x == "Resolvido").mean()   
+                ]
+            }).reset_index()
+            company_resolutions.columns = ["Empresa", "Total de Reclamações", "Taxa de Resolução"]
+            top_res = company_resolutions.sort_values("Taxa de Resolução", ascending=False).head(5)
+            st.dataframe(top_res, use_container_width=True)
+
+        col8, col9 = st.columns(2)
+        with col8:
+            st.markdown("#### Menor Taxa de Resolução")
+            worst_res = company_resolutions.sort_values("Taxa de Resolução").head(5)
+            st.dataframe(worst_res, use_container_width=True)
+        # 4th line: ratings
+        st.write("---")
+        st.subheader("Avaliações das Reclamações")
+
+        col10, col11 = st.columns(2)
+
+        df_ratings = df_filtered[df_filtered["rating"] != nan].assign(rating = lambda x: x.rating.astype(int))
+        with col10:
+            st.markdown("#### Média Geral")
+            mean_score = df_ratings["rating"].mean()
+            st.metric("Nota Média", f"{mean_score:.2f}")
+
+        with col11:
+            st.markdown("#### Por Status")
+            avg_by_status = df_ratings.groupby("status").agg({
+                'rating': [
+                    'count',
+                      'mean'
+                ]
+            }).reset_index()
+            avg_by_status.columns = ["Status", "Total de Reclamações", "Média de Avaliação"]
+            st.dataframe(avg_by_status, use_container_width=True)
+
+        st.markdown("#### Por Empresa")
+        avg_by_company = df_ratings.groupby("company_name").agg({
+            'rating': [
+                'count',
+                'mean'
+            ]
+        }).reset_index()
+        avg_by_company.columns = ["Empresa", "Total de Reclamações", "Média de Avaliação"]
+        st.dataframe(avg_by_company, use_container_width=True)
+        # 5th line: probability
+        st.write("---")
+        st.subheader("Probabilidade de Resolução")
+
+        col12, col13 = st.columns(2)
+
+        with col12:
+            st.markdown("#### Empresas com Maior Probabilidade Média")
+            high_pred = df_filtered.groupby("company_name").agg({
+                'prediction': [
+                    'count',
+                    'mean'
+                ]
+            }).reset_index()
+            high_pred.columns = ["Empresa", "Total de Reclamações", "Probabilidade Média"]
+            high_pred = high_pred.sort_values("Probabilidade Média", ascending=False).head(5)
+            st.dataframe(high_pred, use_container_width=True)
+
+        with col13:
+            st.markdown("#### Empresas com Menor Probabilidade Média")
+            low_pred = df_filtered.groupby("company_name").agg({
+                'prediction': [
+                    'count',
+                    'mean'
+                ]
+            }).reset_index()
+            low_pred.columns = ["Empresa", "Total de Reclamações", "Probabilidade Média"]
+            low_pred = low_pred.sort_values("Probabilidade Média").head(5)
+            st.dataframe(low_pred, use_container_width=True)
+
+        col14, col15 = st.columns(2)
+
+        with col14:
+            st.markdown("#### Reclamações com Maior Probabilidade de Resolução")
+            top_res = df_filtered.sort_values("prediction", ascending=False)[["company_name", "prediction", "report"]].head(5)
+            st.dataframe(top_res, use_container_width=True)
+
+        with col15:
+            st.markdown("#### Reclamações com Menor Probabilidade de Resolução")
+            bottom_res = df_filtered.sort_values("prediction")[["company_name", "prediction", "report"]].head(5)
+            st.dataframe(bottom_res, use_container_width=True)
+

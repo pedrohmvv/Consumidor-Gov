@@ -34,9 +34,9 @@ class Database:
         else:
             return None
         
-    def get_reports(self, user: User = None):
+    def get_reports(self, user: User):
         query = Query()
-        if user == None:
+        if user.user_type == 'servidor':
             return self.reports_table.all()
         else:
             return self.reports_table.search(query.id_user == user.id_user)
@@ -89,7 +89,7 @@ class Database:
     
     def get_companies(self):
         return [company["company_name"] for company in self.companies_table.all()]
-    
+
     def get_states(self):
         return self.config.env_vars.states
 
@@ -129,6 +129,13 @@ class Database:
         except Exception as e:
             print(f"Error inserting prediction: {e}")
 
+    def get_table(self, table_name):
+        return {
+            'reports': self.reports_table,
+            'predictions': self.predictions_table,
+            'companies': self.companies_table,
+        }[table_name]
+
     def insert_report_company_response(self, report_id, company_response):
         pass
     
@@ -140,6 +147,33 @@ class Database:
     
     def update_user_rating(self, user_rating):
         pass
+    
+    def get_company_name(self, id_company):
+        query = Query()
+        company = self.companies_table.search(query.id_company == id_company)
+        if company:
+            return company[0]['company_name']
+        return "Empresa não encontrada"
+    
+    def get_report(self, report_id):
+        query = Query()
+        report = self.reports_table.search(query.id_report == report_id)
+        if report:
+            return report[0]
+        return None
+    
+    def update_report_evaluation(self, report_id, rating, evaluation, resolved):
+        query = Query()
+        try:
+            self.reports_table.update({
+                'rating_score': str(rating),
+                'consumer_written_evaluation': evaluation,
+                'status': 'Resolvido' if resolved else 'Não Resolvido'
+            }, query.id_report == report_id)
+            return True
+        except Exception as e:
+            print(f"Error updating report evaluation: {e}")
+            return False
     
     
     
