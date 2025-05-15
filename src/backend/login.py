@@ -17,13 +17,19 @@ class Login:
             return user
         return False
     
+    def validate_cpf(self, cpf):
+        cpf = cpf.replace(".", "").replace("-", "")
+        if not cpf.isdigit() or len(cpf) != 11:
+            return False
+        return True
+    
     def create_user(self, email, password, name, role, company_name, cpf_user):
         id_company, _ = self.db.get_company(company_name)
         last_id = self.db.get_last_id("users")
         id_user = last_id + 1
         cpf_user = cpf_user.replace(".", "").replace("-", "")
 
-        if not cpf_user.isdigit() or len(cpf_user) != 11:
+        if not self.validate_cpf(cpf_user):
             raise ValueError("CPF inválido")
         
         user = User(

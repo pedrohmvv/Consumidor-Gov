@@ -12,7 +12,7 @@ class ConsumerPage:
 
     def main(self):
         st.title("Área do Consumidor")
-        st.write(f"Bem-vindo, {self.session_state.user.name}!")
+        st.write(f"Bem-vindo (a), {self.session_state.user.name}!")
 
         if "backend_loaded" not in self.session_state:
             self.session_state.backend_loaded = False
@@ -69,7 +69,6 @@ class ConsumerPage:
                 st.rerun()
 
     def complaints_sidebar(self):
-        # Aplica o estilo CSS para rolagem
         st.write('Aqui suas reclamações aparecem de forma ordenada pela probabilidade de não-resolução.')
         df = self.data
         if df.empty:
@@ -77,7 +76,10 @@ class ConsumerPage:
             return
 
         with st.container():
-            for index, row in df.iterrows():
+            if "complaints_shown" not in st.session_state:
+                st.session_state.complaints_shown = 3
+
+            for index, row in df.iloc[:st.session_state.complaints_shown].iterrows():
                 report_id = row['id_report']
                 prediction = row['prediction']
                 report_truncated = row['report'][:50]
@@ -87,7 +89,7 @@ class ConsumerPage:
                 with st.expander(f"{company_name} - {row['date']} - {report_truncated}... - (Prob: {prediction:.2%})"):
                     st.write(f"Probabilidade de resolução: {prediction:.2%}")
                     st.write(f"Probabilidade de não resolução: {non_resolution_prob:.2%}")
-                    st.write(f"Estado: {row['state']}")
+                    st.write(f"Estado: {row['date'].split('-')[0]}")
                     st.write(f"Resposta da empresa: {row['company_response']}")
                     st.write(f"Data da resposta: {row['response_date']}")
                     st.write(f"Avaliação: {row['rating_score']}")
@@ -108,6 +110,15 @@ class ConsumerPage:
                     else:
                         st.write("A empresa ainda não respondeu a esta reclamação.")
 
+            if st.session_state.complaints_shown < len(df):
+                if st.button("Mostrar mais reclamações"):
+                    st.session_state.complaints_shown += 3
+                    st.rerun()
+            elif st.session_state.complaints_shown > 3:
+                if st.button("Mostrar menos reclamações"):
+                    st.session_state.complaints_shown = 3
+                    st.rerun()
+
     def dashboard(self):
         df = self.data
                 
@@ -126,12 +137,13 @@ class ConsumerPage:
             sub_col1.metric(label="Qtd. Resolvidas", value=resolved)
             sub_col2.metric(label="Qtd. Não Resolvidas", value=unresolved)
         with col3:
-            avg_rating_serie = df[df["rating_score"] != '<não há comentários do consumidor>']["rating_score"]
-            extracted_rates = avg_rating_serie.str.extract('(\d+)').astype(float)
-            if extracted_rates.empty:
+            avg_rating_df = df[df["rating_score"] != '<não há comentários do consumidor>']
+            avg_rating_df['rating'] = avg_rating_df["rating_score"].str.extract('(\d+)').astype(float)
+            avg_rating = avg_rating_df['rating'].mean()
+            if avg_rating_df.empty:
                 st.metric("Média de Avaliação", "<small>Nenhuma avaliação registrada ainda.</small>", unsafe_allow_html=True)
             else:
-                st.metric("Média de Avaliação", f"{avg_rating_serie.mean():.2f}" if not df.empty else "N/A")
+                st.metric("Média de Avaliação", f"{avg_rating.mean():.2f}" if not df.empty else "N/A")
 
         st.markdown("---")
         # 2nd line: Companies with most complaints
@@ -159,7 +171,7 @@ class ConsumerPage:
         # 4th line: Companies with best and worst ratings
         df_with_rating = df[df['rating_score'] != '<não há comentários do consumidor>']
         if not df_with_rating.empty:
-            df_with_rating["rating_score"] = df_with_rating["rating_score"].astype(float)
+            df_with_rating["rating_score"] = df_with_rating["rating_score"].str.extract('(\d+)').astype(float)
             df_rating_mean = df_with_rating.groupby("company_name")["rating_score"].mean().sort_values()
 
             st.write("### Empresas por Média de Avaliação")
