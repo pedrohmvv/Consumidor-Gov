@@ -21,7 +21,6 @@ class ServantPage:
         self.data = self.backend.get_dashboard_data()
 
     def main(self):
-        st.set_page_config(layout="wide")  # Define layout como wide
         st.title("Painel do Servidor")
         st.write(f"Bem-vindo(a), {self.session_state.user.name}!")
 
@@ -29,10 +28,13 @@ class ServantPage:
             self.dashboard()
 
     def dashboard(self):
-        st.write('---')
-        st.subheader("Visão Geral das Reclamações")
-
         df = self.data
+
+        min_date = df["date_format"].min().date()
+        max_date = df["date_format"].max().date()
+        months_gap = (max_date - min_date).days // 30
+        st.write('---')
+        st.subheader(f"Visão Geral das Reclamações - Período: {min_date} a {max_date} ({months_gap} meses)")
 
         model_metrics = prod_model.get_metrics()
         model_acc = model_metrics['accuracy']
