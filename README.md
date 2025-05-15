@@ -21,14 +21,18 @@ No ReclamaRank, o desafio é calcular a **probabilidade de uma reclamação feit
 - Tratamento: Limpeza e modelagem dos dados, com pré-processamento textual.
 
 **Modelos Testados:**  
-- Regressão Logística (RegLogit)
-- Random Forest
-- Gradient Boosting Machine (GBM)
-- XGBoost
+- Regressão Logística 
 - Rede Neural com Tensorflow
 
 **Resultado:**  
-O modelo com melhor desempenho foi a **Regressão Logística**, considerado o modelo base para o sistema.
+
+O modelo com melhor desempenho foi a **Rede Neural**, considerado o modelo base para o sistema.
+
+**<span style='color:red'>OBSERVAÇÃO**</span>
+
+> Ao finalizar o desenvolvimento, percebi que apareceu uma nova label para `status`. Seria no caso: 'Não avaliado pelo consumidor', que indica que o cidadão não atualizou o status da reclamação.
+
+Retirando essa label, os dados ficam com um balanceamento de cerca 50/50, além de reduzir o tamanho do banco de dados, o que talvez permita o upload para o GitHub. Não tinha percebido antes pois a primeira versão utilizava apenas 13500 linhas, e essas amostras não foram extraídas. Em breve atualizarei removendo essas labels.
 
 **Desenvolvimento Futuro:**  
 - **Banco de Dados**: Modelagem de três entidades principais:
