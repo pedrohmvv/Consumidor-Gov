@@ -1,10 +1,10 @@
-# **Projeto Final de Aprendizagem Supervisionada — ReclamaRank**
+# **Projeto Final de Aprendizagem Supervisionada — PriorizaConsumidor**
 
-**Nome Provisório:** ReclamaRank
+**Nome Provisório:** PriorizaConsumidor
 
 **Objetivo:**  
 O projeto faz parte da disciplina de Aprendizagem Supervisionada do curso de Ciência de Dados para Negócios (UFPB). O objetivo é desenvolver uma solução real e inovadora de Machine Learning, testando diferentes modelos supervisionados.  
-No ReclamaRank, o desafio é calcular a **probabilidade de uma reclamação feita no site Consumidor.gov ser resolvida ou não** e **ranqueá-las por urgência**, oferecendo prioridade de atendimento baseada nessa probabilidade.
+No PriorizaConsumidor, o desafio é calcular a **probabilidade de uma reclamação feita no site Consumidor.gov ser resolvida ou não** e **ranqueá-las por urgência**, oferecendo prioridade de atendimento baseada nessa probabilidade.
 
 **Coleta e Modelagem de Dados:**  
 - Fonte: Site [Consumidor.gov](https://www.consumidor.gov.br/)  
